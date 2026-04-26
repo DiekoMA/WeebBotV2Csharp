@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    
+    <PackageReference Include="libdave" Version="1.1.1.6" />
+    
+    <PackageReference Include="libopus" Version="1.6.1.2" />
+    
+    <PackageReference Include="libsodium" Version="1.0.21" />
+    
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.5" />
+    
+    <PackageReference Include="NetCord" Version="1.0.0-alpha.480" />
+    
+    <PackageReference Include="NetCord.Hosting" Version="1.0.0-alpha.480" />
+    
+    <PackageReference Include="NetCord.Hosting.Services" Version="1.0.0-alpha.480" />
+    
+    <PackageReference Include="NetCord.Services" Version="1.0.0-alpha.480" />
+  </ItemGroup>
+
+</Project>
