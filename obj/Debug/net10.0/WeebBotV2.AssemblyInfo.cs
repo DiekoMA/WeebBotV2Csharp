@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WeebBotV2")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+51cbb02c24e65588a9f72b8ab757afad1c425ddc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+977a1399ae4624637954296d0a6f07ac08a54649")]
 [assembly: System.Reflection.AssemblyProductAttribute("WeebBotV2")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WeebBotV2")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
