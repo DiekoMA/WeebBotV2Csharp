@@ -64,7 +64,7 @@ public class TC_GeneralModule : CommandModule<CommandContext>
 
                 await foreach (var message in testChannel.GetMessagesAsync())
                 {
-                    File.WriteAllText("testcontent.txt", message.Content);
+                    File.WriteAllText(Path.Combine(Directory.GetCurrentDirectory(), "testcontent.txt"), message.Content);
                     await ReplyAsync(message.Author.Username + " " + message.Author.Username);
                 }
                 
