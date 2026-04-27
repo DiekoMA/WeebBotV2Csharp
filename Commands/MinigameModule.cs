@@ -72,7 +72,6 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
 
         
         var userData = await db.Weebs.FirstOrDefaultAsync(u => u.DiscordId == user.Id);
-
         if (userData == null) return;
 
         var now = DateTimeOffset.UtcNow;
@@ -83,26 +82,46 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
             return;
         }
 
-        string dailyCode = Environment.GetEnvironmentVariable("SD_CODE") ?? GenerateDailyCode();
-        Environment.SetEnvironmentVariable("SD_CODE", dailyCode);
-        if (code != dailyCode)
+        var config = await db.ServerConfig.FirstOrDefaultAsync();
+        if (config == null)
         {
-            userData.LastSelfDestructTry = now;
-            await db.SaveChangesAsync();
-            await RespondAsync(InteractionCallback.Message("Incorrect code, try again another day"));
+            await RespondAsync(InteractionCallback.Message(
+                "No self-destruct code is set. Ping Mayo to run `/reset-sd-code` first."));
             return;
         }
 
-        var users = Context.Guild?.Users;
+        if (config.SdCodeGeneratedAt.Date != now.UtcDateTime.Date)
+        {
+            config.SdCode = GenerateDailyCode();
+            config.SdCodeGeneratedAt = now;
+            await db.SaveChangesAsync();
+        }
+
+        if (code != config.SdCode)
+        {
+            userData.LastSelfDestructTry = now;
+            await db.SaveChangesAsync();
+            await RespondAsync(InteractionCallback.Message("Incorrect code. Try again tomorrow."));
+            return;
+        }
+
+        await RespondAsync(InteractionCallback.Message("Code accepted. say your goodbyes Initiating self-destruct..."));
 
         try
         {
-            foreach (var guildUser in users!)
+            foreach (var guildUser in Context.Guild?.Users!)
             {
-                foreach (var role in guildUser.Value.RoleIds)
+                try
                 {
-                    await guild.RemoveUserRoleAsync(guildUser.Value.Id, 1489054560755519610);
+                    foreach (var role in guildUser.Value.RoleIds)
+                    {
+                        await guild.RemoveUserRoleAsync(guildUser.Value.Id, 1489054560755519610);
+                    }
+                } catch (RestException ex) when ((int)ex.StatusCode == 403)
+                {
+                    Console.WriteLine($"Skipped {guildUser.Value.Id}: no permission");
                 }
+                
                 // await guild.KickUserAsync(guildUser.Value.Id);
                 // await guild.BanUserAsync(guildUser.Value.Id);
             }
@@ -116,11 +135,11 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
     [SlashCommand("reset-sd-code", "Generate a new self-destruct code", DefaultGuildPermissions = Permissions.Administrator)]
     public async Task ResetSdCode()
     {
-        string newCode = GenerateFreshCode();
+        string newCode = GenerateDailyCode();
         Environment.SetEnvironmentVariable("SD_CODE", newCode);
 
         await RespondAsync(InteractionCallback.Message(
-            $"✅ New self-destruct code generated and set: `{newCode}`"));
+            $"New self-destruct code generated and set: wouldn't you love to know"));
     }
 
     private string GenerateDailyCode()
@@ -131,10 +150,6 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
         return rng.Next(100000, 999999).ToString();
     }
 
-    private string GenerateFreshCode()
-    {
-        return new Random().Next(100000, 999999).ToString();
-    }
 
     // private string GetOrGenerateDailyCode(Weeb userData, DateTimeOffset now)
     // {

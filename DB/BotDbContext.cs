@@ -6,6 +6,7 @@ public class BotDbContext : DbContext
     public DbSet<Weeb> Weebs { get; set; }
     public DbSet<Character> Characters { get; set; }
     public DbSet<CharacterEntry> CharacterPool { get; set; }
+    public DbSet<ServerConfig> ServerConfig { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,6 +24,14 @@ public class BotDbContext : DbContext
                 .HasColumnName("balance");
             entity.Property(e => e.LastSelfDestructTry)
                 .HasColumnName("last_self_destruct_try");
+        });
+
+        modelBuilder.Entity<ServerConfig>(entity =>
+        {
+            entity.ToTable("server_config");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.SdCode).HasColumnName("sd_code");
+            entity.Property(e => e.SdCodeGeneratedAt).HasColumnName("sd_code_generated_at");
         });
         
         
