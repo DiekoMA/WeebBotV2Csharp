@@ -69,7 +69,7 @@ public class TC_GeneralModule : CommandModule<CommandContext>
         //     await ReplyAsync(message.Author.Username + " " + message.Author.Username);
         // }
 
-        var dcChannel = Context.Guild.Channels[323424] as TextChannel;
+        var dcChannel = Context.Guild.Channels[1465963973223649332] as TextChannel;
 
         await foreach (var mess in dcChannel.GetMessagesAsync())
         {
