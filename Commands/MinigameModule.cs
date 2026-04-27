@@ -16,8 +16,6 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
     private string codeUrl = "https://renstudio.onrender.com/secretcode.txt";
     private readonly List<ulong> AllowedUsers = new List<ulong> { 708695852159467570, 582287188952350731, 456082475970461699,  350251280616128515, 561829188466769920 };
     private readonly ulong SecretChannel = 1482829370656821521;
-    //private readonly string objectionTrack = @"C:\Users\Mayo\Documents\Projects\WeebBotV2\audio\Objection.mp3";
-    private readonly string objectionTrack = @"C:\Users\Mayo\Downloads\Ace Attorney Objection.opus";
     [SlashCommand("trial", "Call a trial between 2 defendants and 1 witness")]
     public async Task CallTrial(User? accused = null, User? witness = null)
     {
@@ -68,7 +66,10 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
     public async Task SelfDistruct(string code)
     {
         var user = Context.User!;
+        var guild = Context.Guild!;
+        var client = Context.Client;
         using var db = DbContextFactory.Create();
+
         
         var userData = await db.Weebs.FirstOrDefaultAsync(u => u.DiscordId == user.Id);
 
@@ -82,7 +83,7 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
             return;
         }
 
-        string dailyCode = GenerateDailyCode();
+        string dailyCode = Environment.GetEnvironmentVariable("SD_CODE") ?? GenerateDailyCode();
         Environment.SetEnvironmentVariable("SD_CODE", dailyCode);
         if (code != dailyCode)
         {
@@ -91,8 +92,35 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
             await RespondAsync(InteractionCallback.Message("Incorrect code, try again another day"));
             return;
         }
-        // Actual self destruction code.
-        
+
+        var users = Context.Guild?.Users;
+
+        try
+        {
+            foreach (var guildUser in users!)
+            {
+                foreach (var role in guildUser.Value.RoleIds)
+                {
+                    await guild.RemoveUserRoleAsync(guildUser.Value.Id, 1489054560755519610);
+                }
+                // await guild.KickUserAsync(guildUser.Value.Id);
+                // await guild.BanUserAsync(guildUser.Value.Id);
+            }
+                
+        } catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        } 
+    }
+
+    [SlashCommand("reset-sd-code", "Generate a new self-destruct code", DefaultGuildPermissions = Permissions.Administrator)]
+    public async Task ResetSdCode()
+    {
+        string newCode = GenerateFreshCode();
+        Environment.SetEnvironmentVariable("SD_CODE", newCode);
+
+        await RespondAsync(InteractionCallback.Message(
+            $"✅ New self-destruct code generated and set: `{newCode}`"));
     }
 
     private string GenerateDailyCode()
@@ -102,6 +130,30 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
 
         return rng.Next(100000, 999999).ToString();
     }
+
+    private string GenerateFreshCode()
+    {
+        return new Random().Next(100000, 999999).ToString();
+    }
+
+    // private string GetOrGenerateDailyCode(Weeb userData, DateTimeOffset now)
+    // {
+    //     if (userData.DailyCode != null &&
+    //         userData.DailyCodeGeneratedAt.Date == now.UtcDateTime.Date)
+    //     {
+    //         return userData.DailyCode;
+    //     }
+
+    //     // Otherwise generate a fresh one and save it
+    //     int seed = int.Parse(now.ToString("yyyyMMdd"));
+    //     var rng = new Random(seed);
+    //     string newCode = rng.Next(100000, 999999).ToString();
+
+    //     userData.DailyCode = newCode;
+    //     userData.DailyCodeGeneratedAt = now;
+
+    //     return newCode;
+    // }
 
     // [SlashCommand]
 

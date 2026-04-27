@@ -13,6 +13,10 @@ public class Weeb
 
 
     public List<Character> Characters { get; set; } = new();
+
+    // public string DailyCode { get; set; } 
+
+    // public DateTimeOffset DailyCodeGeneratedAt { get; set; } 
 }
 
 public class Character

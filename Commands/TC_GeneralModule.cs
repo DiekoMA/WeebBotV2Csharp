@@ -82,6 +82,20 @@ public class TC_GeneralModule : CommandModule<CommandContext>
         
     }
 
+    [Command("ban")]
+    public async void BanUserRoulette(GuildUser user, int number)
+    {
+        var rng = new Random();
+        var randomNumber1 = rng.Next(1, 15);
+
+        await ReplyAsync($"{user} Weebbot will select a random number between 1-10, if it selects the same number i chose you're banned.");
+        if (number == randomNumber1)
+        {
+            await ReplyAsync("Unfortunate goodbye");
+            await user.BanAsync();
+        }
+    }
+
     [Command("seeddb")]
     public async void SeedDatabase()
     {
