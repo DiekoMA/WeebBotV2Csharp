@@ -1,5 +1,7 @@
 using System.ComponentModel.Design;
+using System.Data.SqlTypes;
 using System.Diagnostics;
+using Microsoft.EntityFrameworkCore;
 using NetCord;
 using NetCord.Gateway;
 using NetCord.Gateway.Voice;
@@ -30,8 +32,6 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
             await RespondAsync(InteractionCallback.Message("You need to be in a channel to run this command."));
             return;
         }
-
-        
     }
 
     [SlashCommand("codeblack", "wouldn't you like to fucking know", DefaultGuildPermissions = Permissions.Administrator)]
@@ -65,49 +65,42 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
     }
 
     [SlashCommand("self-distruct", "Initiate self destruct sequence")]
-    public async Task SelfDistruct(int code)
+    public async Task SelfDistruct(string code)
     {
+        var user = Context.User!;
+        using var db = DbContextFactory.Create();
         
-        using (var client = new HttpClient())
+        var userData = await db.Weebs.FirstOrDefaultAsync(u => u.DiscordId == user.Id);
+
+        if (userData == null) return;
+
+        var now = DateTimeOffset.UtcNow;
+        if ((now - userData.LastSelfDestructTry).TotalHours < 24)
         {
-            client.BaseAddress = new Uri(codeUrl);
-            
-            try
-            {
-                var response = await client.GetAsync($"/{code}"); // adjust endpoint as needed
-                
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    
-                    // Parse the response - adjust based on your API format
-                    if (int.TryParse(content.Trim(), out int correctCode))
-                    {
-                        if (code == correctCode)
-                        {
-                            await RespondAsync(InteractionCallback.Message("✅ Code verified! Self-destruct sequence initiated."));
-                            // Do whatever you want on success
-                        }
-                        else
-                        {
-                            await RespondAsync(InteractionCallback.Message($"❌ Invalid code! You provided `{code}` but the correct code is `{correctCode}`"));
-                        }
-                    }
-                    else
-                    {
-                        await RespondAsync(InteractionCallback.Message("Failed to parse code from endpoint"));
-                    }
-                }
-                else
-                {
-                    await RespondAsync(InteractionCallback.Message($"Failed to fetch code: {response.StatusCode}"));
-                }
-            }
-            catch (Exception ex)
-            {
-                await RespondAsync(InteractionCallback.Message($"Error: {ex.Message}"));
-            }
+            var remaining = TimeSpan.FromHours(24) - (now - userData.LastSelfDestructTry);
+            await RespondAsync(InteractionCallback.Message($"You have no tries left for today You can try again in {remaining.Hours}h {remaining.Minutes}m."));
+            return;
         }
+
+        string dailyCode = GenerateDailyCode();
+        Environment.SetEnvironmentVariable("SD_CODE", dailyCode);
+        if (code != dailyCode)
+        {
+            userData.LastSelfDestructTry = now;
+            await db.SaveChangesAsync();
+            await RespondAsync(InteractionCallback.Message("Incorrect code, try again another day"));
+            return;
+        }
+        // Actual self destruction code.
+        
+    }
+
+    private string GenerateDailyCode()
+    {
+        int seed = int.Parse(DateTime.UtcNow.ToString("yyyyMMdd"));
+        Random rng = new Random(seed);
+
+        return rng.Next(100000, 999999).ToString();
     }
 
     // [SlashCommand]
