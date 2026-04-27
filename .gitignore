@@ -3,5 +3,6 @@ bin/
 obj/
 
 # Common node modules locations
-/node_modules
-/wwwroot/node_modules
+/obj
+/bin
+/bin/Debug/net10.0
