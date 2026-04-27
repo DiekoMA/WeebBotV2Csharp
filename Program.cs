@@ -13,8 +13,8 @@ using NetCord.Services.ApplicationCommands;
 
 
     GatewayClient client;
-    string token = Environment.GetEnvironmentVariable("BotToken") ?? "NzY1MjYwMDIxNDIzNjY5Mjk4.GOZrKs.0qDANqhdNNEGh3u-3aPMSwsZlorG30m6G071d0";
-    string prefix = Environment.GetEnvironmentVariable("BotPrefix") ?? "#";
+    string token = Environment.GetEnvironmentVariable("BotToken");
+    string prefix = Environment.GetEnvironmentVariable("BotPrefix");
     client = new GatewayClient(new BotToken(token), new GatewayClientConfiguration
     {
         Logger = new ConsoleLogger(),
