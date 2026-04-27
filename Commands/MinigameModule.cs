@@ -135,8 +135,17 @@ public class MinigameModule : ApplicationCommandModule<ApplicationCommandContext
     [SlashCommand("reset-sd-code", "Generate a new self-destruct code", DefaultGuildPermissions = Permissions.Administrator)]
     public async Task ResetSdCode()
     {
-        string newCode = GenerateDailyCode();
-        Environment.SetEnvironmentVariable("SD_CODE", newCode);
+        using var db = DbContextFactory.Create();
+        var config = await db.ServerConfig.FirstOrDefaultAsync();
+        if (config == null)
+        {
+            config = new ServerConfig();
+            db.ServerConfig.Add(config);
+        }
+
+        config.SdCode = GenerateDailyCode();
+        config.SdCodeGeneratedAt = DateTimeOffset.UtcNow;
+        await db.SaveChangesAsync();
 
         await RespondAsync(InteractionCallback.Message(
             $"New self-destruct code generated and set: wouldn't you love to know"));
